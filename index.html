@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1e1b4b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>BarcodePrint - Generador e Impresor Térmico Móvil</title>
+  
+  <!-- Manifest PWA -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Librería JsBarcode para renderizado nítido SVG/Canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Contenedor de la Aplicación -->
+  <div class="app-wrapper no-print">
+    
+    <!-- Topbar Móvil -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-badge">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 5v14"></path>
+            <path d="M8 5v14"></path>
+            <path d="M12 5v14"></path>
+            <path d="M17 5v14"></path>
+            <path d="M21 5v14"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="app-title">Barcode<span class="gradient-text">Print</span></h1>
+          <p class="app-subtitle">Etiquetas térmicas y adhesivas</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btnBluetooth" class="btn-icon" title="Conectar Impresora Bluetooth">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline>
+          </svg>
+          <span class="bt-status-dot" id="btStatusDot"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Pestañas de Navegación -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="creator">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="16"></line>
+          <line x1="8" y1="12" x2="16" y2="12"></line>
+        </svg>
+        Crear Etiqueta
+      </button>
+      <button class="tab-btn" data-tab="history">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        Productos (<span id="historyCount">0</span>)
+      </button>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+      
+      <!-- TAB 1: Creador de Etiquetas -->
+      <section id="tab-creator" class="tab-pane active">
+        
+        <!-- Formulario de Producto -->
+        <div class="card glass-card">
+          <div class="card-title-row">
+            <h2 class="card-title">Datos del Producto</h2>
+            <button type="button" id="btnAutoCode" class="btn-text-action">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              Nuevo código
+            </button>
+          </div>
+
+          <div class="input-group">
+            <label for="productName">Nombre de la prenda / artículo *</label>
+            <div class="input-with-icon">
+              <input type="text" id="productName" placeholder="Ej: Camisa Slim Fit Azul" autocomplete="off" value="Camisa Sport">
+              <span class="field-icon">🏷️</span>
+            </div>
+          </div>
+
+          <div class="grid-2-cols">
+            <div class="input-group">
+              <label for="productCode">Código numérico (SKU) *</label>
+              <input type="text" id="productCode" placeholder="Ej: 770123456789" class="font-mono">
+              <small class="help-text">Se usará en tu sistema para cobrar</small>
+            </div>
+            <div class="input-group">
+              <label for="productPrice">Precio (Opcional)</label>
+              <input type="text" id="productPrice" placeholder="Ej: $25.00 o 25.00">
+            </div>
+          </div>
+
+          <div class="grid-2-cols">
+            <div class="input-group">
+              <label for="productDetail">Detalle / Talla / Color</label>
+              <input type="text" id="productDetail" placeholder="Ej: Talla M / Algodón" value="Talla M">
+            </div>
+            <div class="input-group">
+              <label for="barcodeFormat">Tipo de Código</label>
+              <select id="barcodeFormat">
+                <option value="CODE128" selected>CODE 128 (Letras y Números)</option>
+                <option value="EAN13">EAN-13 (13 dígitos Retail)</option>
+                <option value="UPC">UPC-A (12 dígitos)</option>
+                <option value="CODE39">CODE 39</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ajustes de la Etiqueta Térmica -->
+        <div class="card glass-card">
+          <h2 class="card-title">Configuración de Etiqueta Adhesiva</h2>
+          
+          <div class="grid-2-cols">
+            <div class="input-group">
+              <label for="labelPreset">Medida de Etiqueta</label>
+              <select id="labelPreset">
+                <option value="40x30" selected>40 × 30 mm (Ideal Ropa y Retail)</option>
+                <option value="50x30">50 × 30 mm (Estándar Adhesiva)</option>
+                <option value="50x25">50 × 25 mm (Adhesiva Compacta)</option>
+                <option value="30x20">30 × 20 mm (Mini Etiqueta Joya/Accesorios)</option>
+                <option value="58mm">Rollo 58 mm continuo (Ticket térmico)</option>
+                <option value="80mm">Rollo 80 mm continuo</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="printCopies">Cantidad de etiquetas</label>
+              <div class="qty-stepper">
+                <button type="button" id="btnQtyMinus">-</button>
+                <input type="number" id="printCopies" value="1" min="1" max="500">
+                <button type="button" id="btnQtyPlus">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="checkbox-row">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="showPrice" checked>
+              <span>Mostrar Precio en etiqueta</span>
+            </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="showDetail" checked>
+              <span>Mostrar Talla / Detalle</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Vista Previa de la Etiqueta (Tamaño Real Aproximado) -->
+        <div class="preview-section">
+          <div class="preview-header">
+            <span class="preview-tag">VISTA PREVIA EN VIVO</span>
+            <span class="preview-dims" id="previewDimsText">40 × 30 mm</span>
+          </div>
+
+          <div class="preview-stage">
+            <div class="label-ticket-preview" id="labelPreviewCard">
+              <div class="lbl-header">
+                <div class="lbl-title" id="prevTitle">Camisa Sport</div>
+                <div class="lbl-detail" id="prevDetail">Talla M</div>
+              </div>
+              <div class="lbl-barcode-box">
+                <svg id="barcodeSvg"></svg>
+              </div>
+              <div class="lbl-footer">
+                <span class="lbl-code-text" id="prevCodeNumber">770123456789</span>
+                <span class="lbl-price-badge" id="prevPriceTag">$25.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción Móvil -->
+        <div class="actions-dock">
+          <button id="btnPrint" class="btn btn-primary btn-block">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9"></polyline>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+              <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            <span>Imprimir (<span id="printCopiesLabel">1</span> copias)</span>
+          </button>
+          
+          <div class="grid-2-cols mt-2">
+            <button id="btnSaveProduct" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Guardar en catálogo
+            </button>
+            <button id="btnDownloadImg" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Descargar Imagen
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB 2: Histórico de Códigos y Productos para el Sistema -->
+      <section id="tab-history" class="tab-pane">
+        <div class="card glass-card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="card-title">Catálogo de Códigos Generados</h2>
+              <p class="card-subtitle">Úsalos para subirlos a tu sistema de facturación o POS</p>
+            </div>
+            <button id="btnExportCsv" class="btn btn-small btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Exportar Excel/CSV
+            </button>
+          </div>
+
+          <div class="search-box">
+            <input type="text" id="searchHistory" placeholder="Buscar por nombre o número de código...">
+          </div>
+
+          <div class="history-list" id="historyListContainer">
+            <!-- Renderizado dinámico -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal Bluetooth / Impresora Térmica Directa -->
+    <div class="modal-overlay" id="btModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Conexión Impresora Térmica</h3>
+          <button class="modal-close" id="btnCloseBtModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Puedes conectar impresoras térmicas portátiles o de etiquetas mediante <strong>Bluetooth directo</strong> o usar el <strong>diálogo del sistema</strong> (Wi-Fi / Red / Servicio de impresión Android).</p>
+          
+          <div class="bt-device-info" id="btDeviceInfo" style="display:none;">
+            <div class="bt-connected-badge">
+              <span class="dot-green"></span>
+              <span id="btDeviceName">Conectada</span>
+            </div>
+            <button id="btnDisconnectBt" class="btn btn-small btn-danger mt-1">Desconectar</button>
+          </div>
+
+          <div class="options-list mt-3">
+            <button id="btnScanBluetooth" class="btn btn-primary btn-block">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"></polyline>
+              </svg>
+              Buscar Impresora Bluetooth
+            </button>
+            <div class="tip-box mt-3">
+              💡 <strong>Tip para celulares:</strong> Si tu impresora no usa WebBluetooth nativo, puedes usar el botón azul <strong>"Imprimir"</strong> habitual. Tu celular abrirá el controlador de impresión de Android/iOS o aplicaciones puente térmicas como <em>RawBT</em> o el driver de tu impresora.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Mensaje</div>
+
+  </div>
+
+  <!-- Contenedor EXCLUSIVO para la impresión física (Oculto en pantalla normal) -->
+  <div id="printArea" class="print-only"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

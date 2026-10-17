@@ -1,0 +1,940 @@
+/* ===================================================
+   BarcodePrint - Estilos Modernos Móviles y Térmicos
+   =================================================== */
+
+:root {
+  --bg-primary: #0b0f19;
+  --bg-card: rgba(23, 29, 45, 0.75);
+  --bg-card-border: rgba(255, 255, 255, 0.08);
+  --bg-input: #111625;
+  --input-border: #252e46;
+  --input-focus: #4f46e5;
+  
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: rgba(79, 70, 229, 0.15);
+  --accent: #06b6d4;
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  
+  --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 45%);
+  background-attachment: fixed;
+}
+
+/* Tipografía y Utilitarios */
+.font-mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+}
+
+.gradient-text {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mt-1 { margin-top: 6px; }
+.mt-2 { margin-top: 12px; }
+.mt-3 { margin-top: 18px; }
+
+/* Wrapper de la App */
+.app-wrapper {
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 16px 100px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: var(--accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: var(--shadow-glow);
+}
+
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.app-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.btn-icon {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  color: var(--text-primary);
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.bt-status-dot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #64748b;
+  border: 1.5px solid var(--bg-primary);
+  transition: background 0.3s ease;
+}
+
+.bt-status-dot.connected {
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+
+/* Navegación por Pestañas */
+.tab-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: rgba(17, 22, 37, 0.8);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--bg-card-border);
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(79, 70, 229, 0.4);
+}
+
+/* Paneles */
+.tab-pane {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tab-pane.active {
+  display: flex;
+}
+
+/* Tarjetas */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--bg-card-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.card-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.btn-text-action {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: opacity 0.2s;
+}
+
+.btn-text-action:hover {
+  opacity: 0.8;
+}
+
+/* Campos de Formulario */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.input-group:last-child {
+  margin-bottom: 0;
+}
+
+.input-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+}
+
+.input-group select {
+  cursor: pointer;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon input {
+  padding-right: 38px;
+}
+
+.field-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 1rem;
+}
+
+.help-text {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.grid-2-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Stepper de Cantidad */
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--input-border);
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.qty-stepper button {
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.qty-stepper button:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.qty-stepper input {
+  flex: 1;
+  text-align: center;
+  background: transparent;
+  border: none !important;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0;
+  box-shadow: none !important;
+}
+
+/* Checkboxes */
+.checkbox-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bg-card-border);
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.custom-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* ===================================================
+   VISTA PREVIA DE ETIQUETA ADHESIVA
+   =================================================== */
+.preview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.preview-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+}
+
+.preview-dims {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.preview-stage {
+  background: #1e2538;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 24px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* La etiqueta adhesiva en pantalla: Simula el papel blanco térmico */
+.label-ticket-preview {
+  background: #ffffff;
+  color: #000000;
+  border-radius: 6px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  transition: all 0.3s ease;
+  user-select: none;
+  
+  /* Medidas base (se ajustan por clase según el preset) */
+  width: 240px;
+  min-height: 160px;
+}
+
+.label-ticket-preview .lbl-header {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-bottom: 1px dashed #d1d5db;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}
+
+.label-ticket-preview .lbl-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label-ticket-preview .lbl-detail {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.label-ticket-preview .lbl-barcode-box {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.label-ticket-preview .lbl-barcode-box svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.label-ticket-preview .lbl-footer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed #d1d5db;
+}
+
+.label-ticket-preview .lbl-code-text {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.5px;
+}
+
+.label-ticket-preview .lbl-price-badge {
+  font-weight: 900;
+  font-size: 1.05rem;
+  background: #000000;
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: -0.2px;
+}
+
+/* Modificadores según tamaño */
+.label-ticket-preview.size-30x20 {
+  width: 200px;
+  min-height: 125px;
+  padding: 6px 8px;
+}
+.label-ticket-preview.size-30x20 .lbl-title { font-size: 0.75rem; }
+.label-ticket-preview.size-30x20 .lbl-detail { display: none; }
+.label-ticket-preview.size-30x20 .lbl-price-badge { font-size: 0.85rem; padding: 1px 4px; }
+
+.label-ticket-preview.size-50x25 {
+  width: 260px;
+  min-height: 140px;
+}
+
+.label-ticket-preview.size-50x30 {
+  width: 260px;
+  min-height: 170px;
+}
+
+.label-ticket-preview.size-58mm,
+.label-ticket-preview.size-80mm {
+  width: 280px;
+  border-radius: 2px;
+}
+
+/* Botones y Acciones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 20px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-primary {
+  background: var(--accent-gradient);
+  color: #ffffff;
+  box-shadow: 0 4px 18px rgba(79, 70, 229, 0.45);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-small {
+  padding: 7px 12px;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+/* Barra de acciones inferior */
+.actions-dock {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Historial de Productos */
+.search-box input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(17, 22, 37, 0.6);
+  border: 1px solid var(--bg-card-border);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s ease;
+}
+
+.history-item:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.history-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.history-code-badge {
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+.history-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.history-action-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--bg-card-border);
+  color: var(--text-secondary);
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.history-action-btn:hover {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.empty-history {
+  text-align: center;
+  padding: 30px 10px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Modales */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-card {
+  background: #171d2d;
+  border: 1px solid var(--bg-card-border);
+  border-radius: var(--radius-lg);
+  max-width: 440px;
+  width: 100%;
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tip-box {
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: 0.8rem;
+  color: #bae6fd;
+  line-height: 1.4;
+}
+
+.bt-connected-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.dot-green {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #1e293b;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===================================================
+   REGLAS CRÍTICAS DE IMPRESIÓN FÍSICA TÉRMICA (@MEDIA PRINT)
+   =================================================== */
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  /* Quitar márgenes impuestos por el navegador */
+  @page {
+    margin: 0 !important;
+    padding: 0 !important;
+    size: auto;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Cada etiqueta física para la impresora térmica */
+  .thermal-print-item {
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-sizing: border-box !important;
+    margin: 0 auto !important;
+    padding: 2mm 3mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    overflow: hidden !important;
+  }
+
+  /* Dimensiones exactas según configuración */
+  .thermal-print-item.preset-40x30 {
+    width: 40mm !important;
+    height: 30mm !important;
+  }
+
+  .thermal-print-item.preset-50x30 {
+    width: 50mm !important;
+    height: 30mm !important;
+  }
+
+  .thermal-print-item.preset-50x25 {
+    width: 50mm !important;
+    height: 25mm !important;
+  }
+
+  .thermal-print-item.preset-30x20 {
+    width: 30mm !important;
+    height: 20mm !important;
+    padding: 1mm 1.5mm !important;
+  }
+
+  .thermal-print-item.preset-58mm {
+    width: 54mm !important;
+    min-height: 35mm !important;
+    height: auto !important;
+  }
+
+  .thermal-print-item.preset-80mm {
+    width: 72mm !important;
+    min-height: 40mm !important;
+    height: auto !important;
+  }
+
+  .thermal-print-item .th-header {
+    width: 100% !important;
+    text-align: center !important;
+    border-bottom: 0.5pt dashed #000 !important;
+    padding-bottom: 1mm !important;
+    margin-bottom: 1mm !important;
+  }
+
+  .thermal-print-item .th-name {
+    font-size: 8pt !important;
+    font-weight: bold !important;
+    line-height: 1.1 !important;
+    text-transform: uppercase !important;
+  }
+
+  .thermal-print-item .th-detail {
+    font-size: 6.5pt !important;
+    font-weight: normal !important;
+  }
+
+  .thermal-print-item .th-barcode {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 1mm 0 !important;
+  }
+
+  .thermal-print-item .th-barcode svg {
+    max-width: 95% !important;
+    height: auto !important;
+  }
+
+  .thermal-print-item .th-footer {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-top: 0.5pt dashed #000 !important;
+    padding-top: 1mm !important;
+    font-size: 7.5pt !important;
+    font-weight: bold !important;
+  }
+
+  .thermal-print-item .th-code {
+    font-family: monospace !important;
+    font-size: 7.5pt !important;
+  }
+
+  .thermal-print-item .th-price {
+    font-size: 9pt !important;
+    font-weight: 900 !important;
+  }
+}
