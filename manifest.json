@@ -1,17 +1,18 @@
 {
-  "name": "BarcodePrint - Etiquetas Térmicas",
-  "short_name": "BarcodePrint",
-  "description": "Generador de código de barras e impresión en impresoras térmicas adhesivas",
+  "name": "JR Importadora - Códigos y Etiquetas",
+  "short_name": "JR Importadora",
+  "description": "Generador de código de barras e impresión térmica de etiquetas para JR Importadora",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0b0f19",
-  "theme_color": "#4f46e5",
+  "background_color": "#0a0a14",
+  "theme_color": "#e11d48",
   "icons": [
     {
-      "src": "icons/icon.svg",
+      "src": "icons/logo.png",
       "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
 }
+

@@ -3,22 +3,22 @@
    =================================================== */
 
 :root {
-  --bg-primary: #0b0f19;
-  --bg-card: rgba(23, 29, 45, 0.75);
-  --bg-card-border: rgba(255, 255, 255, 0.08);
-  --bg-input: #111625;
-  --input-border: #252e46;
-  --input-focus: #4f46e5;
+  --bg-primary: #0a0a14;
+  --bg-card: rgba(22, 21, 38, 0.78);
+  --bg-card-border: rgba(236, 72, 153, 0.15);
+  --bg-input: #121124;
+  --input-border: #2a2542;
+  --input-focus: #ec4899;
   
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: rgba(79, 70, 229, 0.15);
-  --accent: #06b6d4;
-  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+  --primary: #e11d48;
+  --primary-hover: #be123c;
+  --primary-light: rgba(225, 29, 72, 0.18);
+  --accent: #ec4899;
+  --accent-gradient: linear-gradient(135deg, #f43f5e 0%, #ec4899 45%, #a855f7 100%);
   
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #fdf2f8;
+  --text-secondary: #cbd5e1;
+  --text-muted: #837b9b;
   
   --success: #10b981;
   --danger: #ef4444;
@@ -31,9 +31,9 @@
   --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 24px rgba(236, 72, 153, 0.35);
 }
 
 * {
@@ -52,8 +52,9 @@ body {
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 45%);
+    radial-gradient(circle at 10% 20%, rgba(236, 72, 153, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(244, 63, 94, 0.05) 0%, transparent 60%);
   background-attachment: fixed;
 }
 
@@ -98,16 +99,25 @@ body {
   gap: 12px;
 }
 
-.logo-badge {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius-md);
-  background: var(--accent-gradient);
+.logo-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #ec4899;
+  box-shadow: 0 0 16px rgba(236, 72, 153, 0.45);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: var(--shadow-glow);
+  flex-shrink: 0;
+}
+
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .app-title {
@@ -119,8 +129,9 @@ body {
 
 .app-subtitle {
   font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 500;
+  color: #f472b6;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 .btn-icon {
@@ -451,6 +462,18 @@ body {
   /* Medidas base (se ajustan por clase según el preset) */
   width: 240px;
   min-height: 160px;
+}
+
+.label-ticket-preview .lbl-brand {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #000000;
+  text-transform: uppercase;
+  border-bottom: 1.2px solid #000000;
+  width: 100%;
+  padding-bottom: 2px;
+  margin-bottom: 3px;
 }
 
 .label-ticket-preview .lbl-header {
@@ -882,6 +905,18 @@ body {
     width: 72mm !important;
     min-height: 40mm !important;
     height: auto !important;
+  }
+
+  .thermal-print-item .th-brand {
+    width: 100% !important;
+    text-align: center !important;
+    font-size: 7.5pt !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    border-bottom: 0.8pt solid #000 !important;
+    padding-bottom: 0.5mm !important;
+    margin-bottom: 0.8mm !important;
   }
 
   .thermal-print-item .th-header {

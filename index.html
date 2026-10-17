@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1e1b4b">
+  <meta name="theme-color" content="#0a0a14">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>BarcodePrint - Generador e Impresor Térmico Móvil</title>
+  <title>JR Importadora - Generador de Códigos y Etiquetas</title>
   
   <!-- Manifest PWA -->
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="icon" type="image/png" href="icons/logo.png">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,18 +29,12 @@
     <!-- Topbar Móvil -->
     <header class="app-header">
       <div class="brand">
-        <div class="logo-badge">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 5v14"></path>
-            <path d="M8 5v14"></path>
-            <path d="M12 5v14"></path>
-            <path d="M17 5v14"></path>
-            <path d="M21 5v14"></path>
-          </svg>
+        <div class="logo-wrapper">
+          <img src="icons/logo.png" alt="JR Importadora Logo" class="brand-logo-img">
         </div>
         <div>
-          <h1 class="app-title">Barcode<span class="gradient-text">Print</span></h1>
-          <p class="app-subtitle">Etiquetas térmicas y adhesivas</p>
+          <h1 class="app-title">JR <span class="gradient-text">Importadora</span></h1>
+          <p class="app-subtitle">Cosméticos & Tecnología</p>
         </div>
       </div>
       <div class="header-actions">
@@ -95,8 +89,8 @@
           <div class="input-group">
             <label for="productName">Nombre de la prenda / artículo *</label>
             <div class="input-with-icon">
-              <input type="text" id="productName" placeholder="Ej: Camisa Slim Fit Azul" autocomplete="off" value="Camisa Sport">
-              <span class="field-icon">🏷️</span>
+              <input type="text" id="productName" placeholder="Ej: Labial Matte / Camisa / Audífonos" autocomplete="off" value="Labial Matte Larga Duración">
+              <span class="field-icon">✨</span>
             </div>
           </div>
 
@@ -108,14 +102,14 @@
             </div>
             <div class="input-group">
               <label for="productPrice">Precio (Opcional)</label>
-              <input type="text" id="productPrice" placeholder="Ej: $25.00 o 25.00">
+              <input type="text" id="productPrice" placeholder="Ej: $15.00 o 15.00" value="15.00">
             </div>
           </div>
 
           <div class="grid-2-cols">
             <div class="input-group">
-              <label for="productDetail">Detalle / Talla / Color</label>
-              <input type="text" id="productDetail" placeholder="Ej: Talla M / Algodón" value="Talla M">
+              <label for="productDetail">Detalle / Talla / Tono / Color</label>
+              <input type="text" id="productDetail" placeholder="Ej: Tono 04 Rose / Talla M" value="Tono 04 Rose">
             </div>
             <div class="input-group">
               <label for="barcodeFormat">Tipo de Código</label>
@@ -137,11 +131,11 @@
             <div class="input-group">
               <label for="labelPreset">Medida de Etiqueta</label>
               <select id="labelPreset">
-                <option value="40x30" selected>40 × 30 mm (Ideal Ropa y Retail)</option>
+                <option value="40x30" selected>40 × 30 mm (Ideal Ropa y Cosméticos)</option>
                 <option value="50x30">50 × 30 mm (Estándar Adhesiva)</option>
                 <option value="50x25">50 × 25 mm (Adhesiva Compacta)</option>
-                <option value="30x20">30 × 20 mm (Mini Etiqueta Joya/Accesorios)</option>
-                <option value="58mm">Rollo 58 mm continuo (Ticket térmico)</option>
+                <option value="30x20">30 × 20 mm (Mini Etiqueta Cosmético/Joya)</option>
+                <option value="58mm">Rollo 58 mm continuo (Mini impresora C9)</option>
                 <option value="80mm">Rollo 80 mm continuo</option>
               </select>
             </div>
@@ -157,12 +151,16 @@
 
           <div class="checkbox-row">
             <label class="custom-checkbox">
+              <input type="checkbox" id="showBrand" checked>
+              <span>Mostrar marca <strong>JR IMPORTADORA</strong> en etiqueta</span>
+            </label>
+            <label class="custom-checkbox">
               <input type="checkbox" id="showPrice" checked>
               <span>Mostrar Precio en etiqueta</span>
             </label>
             <label class="custom-checkbox">
               <input type="checkbox" id="showDetail" checked>
-              <span>Mostrar Talla / Detalle</span>
+              <span>Mostrar Detalle / Talla / Tono</span>
             </label>
           </div>
         </div>
@@ -176,16 +174,17 @@
 
           <div class="preview-stage">
             <div class="label-ticket-preview" id="labelPreviewCard">
+              <div class="lbl-brand" id="prevBrand">JR IMPORTADORA</div>
               <div class="lbl-header">
-                <div class="lbl-title" id="prevTitle">Camisa Sport</div>
-                <div class="lbl-detail" id="prevDetail">Talla M</div>
+                <div class="lbl-title" id="prevTitle">Labial Matte Larga Duración</div>
+                <div class="lbl-detail" id="prevDetail">Tono 04 Rose</div>
               </div>
               <div class="lbl-barcode-box">
                 <svg id="barcodeSvg"></svg>
               </div>
               <div class="lbl-footer">
                 <span class="lbl-code-text" id="prevCodeNumber">770123456789</span>
-                <span class="lbl-price-badge" id="prevPriceTag">$25.00</span>
+                <span class="lbl-price-badge" id="prevPriceTag">$15.00</span>
               </div>
             </div>
           </div>

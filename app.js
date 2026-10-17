@@ -16,11 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnQtyMinus = document.getElementById('btnQtyMinus');
   const btnQtyPlus = document.getElementById('btnQtyPlus');
   const btnAutoCode = document.getElementById('btnAutoCode');
+  const showBrandCheck = document.getElementById('showBrand');
   const showPriceCheck = document.getElementById('showPrice');
   const showDetailCheck = document.getElementById('showDetail');
 
   // Preview
   const labelPreviewCard = document.getElementById('labelPreviewCard');
+  const prevBrand = document.getElementById('prevBrand');
   const prevTitle = document.getElementById('prevTitle');
   const prevDetail = document.getElementById('prevDetail');
   const prevCodeNumber = document.getElementById('prevCodeNumber');
@@ -120,6 +122,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Actualizar Textos
+    if (showBrandCheck && showBrandCheck.checked) {
+      prevBrand.style.display = 'block';
+    } else if (prevBrand) {
+      prevBrand.style.display = 'none';
+    }
+
     prevTitle.textContent = name;
     
     if (showDetailCheck.checked && detail) {
@@ -229,6 +237,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const item = document.createElement('div');
       item.className = `thermal-print-item preset-${preset}`;
 
+      if (showBrandCheck && showBrandCheck.checked) {
+        const brandElem = document.createElement('div');
+        brandElem.className = 'th-brand';
+        brandElem.textContent = 'JR IMPORTADORA';
+        item.appendChild(brandElem);
+      }
+
       const header = document.createElement('div');
       header.className = 'th-header';
       header.innerHTML = `
@@ -302,8 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('input', updateLabelPreview);
   });
 
-  [barcodeFormatSelect, labelPresetSelect, showPriceCheck, showDetailCheck].forEach(elem => {
-    elem.addEventListener('change', updateLabelPreview);
+  [barcodeFormatSelect, labelPresetSelect, showBrandCheck, showPriceCheck, showDetailCheck].forEach(elem => {
+    if (elem) elem.addEventListener('change', updateLabelPreview);
   });
 
   btnAutoCode.addEventListener('click', () => {
@@ -326,17 +341,35 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    let startY = 50;
+    if (showBrandCheck && showBrandCheck.checked) {
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('JR IMPORTADORA', canvas.width / 2, 40);
+
+      // Línea separadora
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#000000';
+      ctx.beginPath();
+      ctx.moveTo(60, 48);
+      ctx.lineTo(canvas.width - 60, 48);
+      ctx.stroke();
+
+      startY = 80;
+    }
+
     // Texto de título
     ctx.fillStyle = '#000000';
-    ctx.font = 'bold 30px sans-serif';
+    ctx.font = 'bold 26px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(productNameInput.value.toUpperCase() || 'PRODUCTO', canvas.width / 2, 50);
+    ctx.fillText(productNameInput.value.toUpperCase() || 'PRODUCTO', canvas.width / 2, startY);
 
     // Detalle
     if (showDetailCheck.checked && productDetailInput.value) {
-      ctx.font = '20px sans-serif';
+      ctx.font = '18px sans-serif';
       ctx.fillStyle = '#444444';
-      ctx.fillText(productDetailInput.value, canvas.width / 2, 85);
+      ctx.fillText(productDetailInput.value, canvas.width / 2, startY + 28);
     }
 
     // Convertir SVG de código de barras a imagen y dibujar en canvas
