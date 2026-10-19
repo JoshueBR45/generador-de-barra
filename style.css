@@ -1555,3 +1555,16 @@ body {
   .thermal-price-item.preset-40x30.has-tiers .thp-main-price { font-size: 19pt !important; }
   .thermal-price-item.preset-60x40.has-tiers .thp-main-price { font-size: 30pt !important; }
 }
+
+/* ===== Logo más grande para que se lea "importadora" ===== */
+.simple-price-ticket .spt-logo-circle { width: 4em; height: 4em; margin: -0.3em 0 -0.4em; }
+.simple-price-ticket .spt-prod-name { max-width: 70%; }
+.simple-price-ticket.has-tiers .spt-main-price,
+.simple-price-ticket.has-tiers-3 .spt-main-price { font-size: 3.4em; }
+@media print {
+  .thermal-price-item .thp-logo-circle { width: 9mm !important; height: 9mm !important; margin: -0.8mm 0 -1mm !important; border: none !important; }
+  .thermal-price-item .thp-logo-circle img { filter: grayscale(100%) contrast(180%) !important; }
+  .thermal-price-item.preset-60x40 .thp-logo-circle { width: 13mm !important; height: 13mm !important; }
+  .thermal-price-item.has-tiers .thp-main-price,
+  .thermal-price-item.has-tiers-3 .thp-main-price { font-size: 20pt !important; }
+}
