@@ -17,12 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnQtyPlus = document.getElementById('btnQtyPlus');
   const btnAutoCode = document.getElementById('btnAutoCode');
   const showBrandCheck = document.getElementById('showBrand');
+  const showBrandLogoCheck = document.getElementById('showBrandLogo');
   const showPriceCheck = document.getElementById('showPrice');
   const showDetailCheck = document.getElementById('showDetail');
 
-  // Preview
+  // Preview Tab 1
   const labelPreviewCard = document.getElementById('labelPreviewCard');
   const prevBrand = document.getElementById('prevBrand');
+  const prevBrandLogo = document.getElementById('prevBrandLogo');
   const prevTitle = document.getElementById('prevTitle');
   const prevDetail = document.getElementById('prevDetail');
   const prevCodeNumber = document.getElementById('prevCodeNumber');
@@ -30,12 +32,39 @@ document.addEventListener('DOMContentLoaded', () => {
   const barcodeSvg = document.getElementById('barcodeSvg');
   const previewDimsText = document.getElementById('previewDimsText');
 
-  // Actions
+  // Actions Tab 1
   const btnPrint = document.getElementById('btnPrint');
   const btnSaveProduct = document.getElementById('btnSaveProduct');
   const btnDownloadImg = document.getElementById('btnDownloadImg');
   const printArea = document.getElementById('printArea');
   const toast = document.getElementById('toast');
+
+  // --- Elementos del DOM Tab 2 (Etiqueta de Precios Simple) ---
+  const pricingProdName = document.getElementById('pricingProdName');
+  const pricingMainPrice = document.getElementById('pricingMainPrice');
+  const pricingShowUnit = document.getElementById('pricingShowUnit');
+  const tierRows = Array.from(document.querySelectorAll('.tier-row'));
+
+  const pricingLabelPreset = document.getElementById('pricingLabelPreset');
+  const pricingCopies = document.getElementById('pricingCopies');
+  const pricingCopiesLabel = document.getElementById('pricingCopiesLabel');
+  const btnPricingQtyMinus = document.getElementById('btnPricingQtyMinus');
+  const btnPricingQtyPlus = document.getElementById('btnPricingQtyPlus');
+  const pricingShowLogo = document.getElementById('pricingShowLogo');
+
+  // Preview Tab 2
+  const pricingPreviewCard = document.getElementById('pricingPreviewCard');
+  const sptProdName = document.getElementById('sptProdName');
+  const sptLogoCircle = document.getElementById('sptLogoCircle');
+  const sptMainNum = document.getElementById('sptMainNum');
+  const sptTiers = document.getElementById('sptTiers');
+  const sptUnit = document.getElementById('sptUnit');
+  const pricingPreviewDims = document.getElementById('pricingPreviewDims');
+
+  // Actions Tab 2
+  const btnPricingPrint = document.getElementById('btnPricingPrint');
+  const btnPricingSave = document.getElementById('btnPricingSave');
+  const btnPricingDownloadImg = document.getElementById('btnPricingDownloadImg');
 
   // Tabs
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -68,6 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Inicialización ---
   generateNewProductCode();
   updateLabelPreview();
+  if (typeof updatePricingPreview === 'function') {
+    updatePricingPreview();
+  }
   renderCatalog();
 
   // ==========================================================
@@ -123,7 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Actualizar Textos
     if (showBrandCheck && showBrandCheck.checked) {
-      prevBrand.style.display = 'block';
+      prevBrand.style.display = 'flex';
+      if (prevBrandLogo) {
+        prevBrandLogo.style.display = (showBrandLogoCheck && showBrandLogoCheck.checked) ? 'inline-block' : 'none';
+      }
     } else if (prevBrand) {
       prevBrand.style.display = 'none';
     }
@@ -240,7 +275,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (showBrandCheck && showBrandCheck.checked) {
         const brandElem = document.createElement('div');
         brandElem.className = 'th-brand';
-        brandElem.textContent = 'JR IMPORTADORA';
+        if (showBrandLogoCheck && showBrandLogoCheck.checked) {
+          brandElem.innerHTML = '<img src="icons/logo.png" class="th-brand-logo" alt="Logo"><span>JR IMPORTADORA</span>';
+        } else {
+          brandElem.textContent = 'JR IMPORTADORA';
+        }
         item.appendChild(brandElem);
       }
 
@@ -410,6 +449,345 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ==========================================================
+  // TAB 2: GENERADOR DE ETIQUETA DE PRECIO SIMPLE (FIEL AL BOCETO)
+  // ==========================================================
+
+  // Inputs reactivos
+  [pricingProdName, pricingMainPrice].forEach(input => {
+    if (input) input.addEventListener('input', updatePricingPreview);
+  });
+
+  if (pricingLabelPreset) pricingLabelPreset.addEventListener('change', updatePricingPreview);
+  if (pricingShowLogo) pricingShowLogo.addEventListener('change', updatePricingPreview);
+  if (pricingShowUnit) pricingShowUnit.addEventListener('change', updatePricingPreview);
+
+  tierRows.forEach(row => {
+    row.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', updatePricingPreview);
+      inp.addEventListener('change', updatePricingPreview);
+    });
+  });
+
+  // Líneas de oferta: "Mas de 3 a $1.25", "Mas de 6 a ...", "Mas de 12 a ..."
+  function readTierInputs() {
+    return tierRows.map(row => ({
+      on: row.querySelector('.tier-on').checked,
+      prefix: row.querySelector('.tier-prefix').value.trim(),
+      qty: row.querySelector('.tier-qty').value.trim(),
+      conn: row.querySelector('.tier-conn').value.trim(),
+      price: row.querySelector('.tier-price').value.replace('$', '').trim()
+    }));
+  }
+
+  // Texto de la línea, ej: "Mas de 3 a $1.25"
+  function tierText(t) {
+    return [t.prefix, t.qty].filter(Boolean).join(' ');
+  }
+
+  // Solo las líneas activadas y completas
+  function getTiers() {
+    return readTierInputs()
+      .filter(t => t.on && t.price)
+      .map(t => ({ label: tierText(t), priceText: '$' + t.price + (t.conn ? ' ' + t.conn : '') }));
+  }
+
+  function tierHtml(t, p) {
+    return '<span class="' + p + '-tier-label">' + escapeHtml(t.label) + '</span><span class="' + p + '-tier-price">' + escapeHtml(t.priceText) + '</span>';
+  }
+
+  // Stepper de copias para precios
+  btnPricingQtyMinus.addEventListener('click', () => {
+    let val = parseInt(pricingCopies.value, 10) || 1;
+    if (val > 1) {
+      val--;
+      pricingCopies.value = val;
+      pricingCopiesLabel.textContent = val;
+    }
+  });
+
+  btnPricingQtyPlus.addEventListener('click', () => {
+    let val = parseInt(pricingCopies.value, 10) || 1;
+    if (val < 500) {
+      val++;
+      pricingCopies.value = val;
+      pricingCopiesLabel.textContent = val;
+    }
+  });
+
+  pricingCopies.addEventListener('input', () => {
+    let val = parseInt(pricingCopies.value, 10) || 1;
+    if (val < 1) val = 1;
+    if (val > 500) val = 500;
+    pricingCopiesLabel.textContent = val;
+  });
+
+  // Actualización en tiempo real de la etiqueta fiel al dibujo
+  function updatePricingPreview() {
+    const name = pricingProdName.value.trim() || 'Nombre del producto';
+    const mainPrice = (pricingMainPrice.value || '1.50').replace('$', '').trim();
+    const preset = pricingLabelPreset.value;
+
+    // Dimensiones
+    pricingPreviewCard.className = `simple-price-ticket size-${preset}`;
+    
+    const presetLabels = {
+      '50x30': '50 × 30 mm',
+      '40x30': '40 × 30 mm',
+      '50x25': '50 × 25 mm',
+      '60x40': '60 × 40 mm',
+      '58mm': '58 mm continuo',
+      '80mm': '80 mm continuo'
+    };
+    pricingPreviewDims.textContent = presetLabels[preset] || preset;
+
+    // Contenido
+    sptProdName.textContent = name;
+    sptMainNum.textContent = mainPrice;
+    // Líneas de oferta
+    const tiers = getTiers();
+    sptTiers.innerHTML = '';
+    tiers.forEach(t => {
+      const line = document.createElement('div');
+      line.className = 'spt-tier';
+      line.innerHTML = tierHtml(t, line.className.split('-')[0]);
+      sptTiers.appendChild(line);
+    });
+    if (tiers.length) {
+      pricingPreviewCard.classList.add('has-tiers', `has-tiers-${tiers.length}`);
+    }
+    tierRows.forEach(row => row.classList.toggle('off', !row.querySelector('.tier-on').checked));
+
+    // Palabra UNIDAD
+    sptUnit.style.display = pricingShowUnit.checked ? '' : 'none';
+
+    // Círculo con logo
+    sptLogoCircle.style.display = pricingShowLogo.checked ? 'flex' : 'none';
+  }
+
+  // Cargar producto del catálogo a la etiqueta simple de precio
+  function loadProductIntoPricing(item) {
+    pricingProdName.value = item.name || '';
+    pricingMainPrice.value = (item.price || '1.50').replace('$', '');
+    // Ofertas guardadas (compatible con productos viejos de 1 sola oferta)
+    let saved = Array.isArray(item.tiers) ? item.tiers : null;
+    if (!saved && item.offerPrice && item.offerEnabled !== false) {
+      const m = String(item.offerCondition || '').match(/\d+/);
+      saved = [{ on: true, prefix: 'Más de', conn: 'c/u', qty: m ? m[0] : 3, price: item.offerPrice.replace('$', '') }];
+    }
+    tierRows.forEach((row, i) => {
+      const t = saved && saved[i];
+      row.querySelector('.tier-on').checked = !!(t && t.on);
+      if (t) {
+        row.querySelector('.tier-prefix').value = t.prefix !== undefined ? t.prefix : 'Más de';
+        row.querySelector('.tier-conn').value = (t.conn === undefined || t.conn === 'a') ? 'c/u' : t.conn;
+        row.querySelector('.tier-qty').value = t.qty;
+        row.querySelector('.tier-price').value = t.price;
+      }
+    });
+    updatePricingPreview();
+    showToast(`Cargado en Precios: ${item.name}`);
+  }
+
+  // Impresión Física Térmica (Fiel al boceto)
+  btnPricingPrint.addEventListener('click', () => {
+    const copies = parseInt(pricingCopies.value, 10) || 1;
+    const name = pricingProdName.value.trim() || 'PRODUCTO';
+    const mainPrice = (pricingMainPrice.value || '1.50').replace('$', '').trim();
+    const tiers = getTiers();
+    const preset = pricingLabelPreset.value;
+
+    printArea.innerHTML = '';
+
+    for (let i = 0; i < copies; i++) {
+      const item = document.createElement('div');
+      item.className = `thermal-price-item preset-${preset}` + (tiers.length ? ` has-tiers has-tiers-${tiers.length}` : '');
+
+      // Fila Superior (Nombre a la izquierda, Círculo con logo a la derecha)
+      const topRow = document.createElement('div');
+      topRow.className = 'thp-top-row';
+
+      const nameElem = document.createElement('div');
+      nameElem.className = 'thp-prod-name';
+      nameElem.textContent = name;
+      topRow.appendChild(nameElem);
+
+      if (pricingShowLogo.checked) {
+        const logoCircle = document.createElement('div');
+        logoCircle.className = 'thp-logo-circle';
+        logoCircle.innerHTML = '<img src="icons/logo.png" alt="Logo">';
+        topRow.appendChild(logoCircle);
+      }
+      item.appendChild(topRow);
+
+      // Precio Principal Gigante + UNIDAD
+      const mainPriceElem = document.createElement('div');
+      mainPriceElem.className = 'thp-main-price';
+      mainPriceElem.appendChild(document.createTextNode(`$${mainPrice}`));
+      if (pricingShowUnit.checked) {
+        const unit = document.createElement('span');
+        unit.className = 'thp-unit';
+        unit.textContent = 'UNIDAD';
+        mainPriceElem.appendChild(unit);
+      }
+      item.appendChild(mainPriceElem);
+
+      // Líneas de oferta (solo las activadas)
+      if (tiers.length) {
+        const box = document.createElement('div');
+        box.className = 'thp-tiers';
+        tiers.forEach(t => {
+          const line = document.createElement('div');
+          line.className = 'thp-tier';
+          line.innerHTML = tierHtml(t, line.className.split('-')[0]);
+          box.appendChild(line);
+        });
+        item.appendChild(box);
+      }
+
+      printArea.appendChild(item);
+    }
+
+    saveCurrentPricingProduct(false);
+
+    showToast(`Enviando ${copies} etiqueta(s) a la impresora...`);
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  });
+
+  // Guardar en catálogo desde Tab de Precios
+  function saveCurrentPricingProduct(showMessage = true) {
+    const name = pricingProdName.value.trim();
+    if (!name) return;
+
+    const existingIndex = catalog.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+    const itemData = {
+      name,
+      code: catalog[existingIndex] ? catalog[existingIndex].code : ('PR' + Date.now().toString().slice(-6)),
+      price: pricingMainPrice.value.trim(),
+      tiers: readTierInputs(),
+      preset: pricingLabelPreset.value,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (existingIndex >= 0) {
+      catalog[existingIndex] = { ...catalog[existingIndex], ...itemData };
+    } else {
+      catalog.unshift(itemData);
+    }
+
+    saveCatalogToStorage();
+    if (showMessage) {
+      showToast('Guardado en el catálogo');
+    }
+  }
+
+  btnPricingSave.addEventListener('click', () => {
+    saveCurrentPricingProduct(true);
+  });
+
+  // Descargar imagen PNG nítida (Fiel al boceto del usuario)
+  btnPricingDownloadImg.addEventListener('click', () => {
+    const NAVY = '#1a2140';
+    const WINE = '#7b1c4b';
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const W = 1024, H = 572;
+    canvas.width = W;
+    canvas.height = H;
+
+    const name = pricingProdName.value.trim() || 'Nombre del producto';
+    const mainPrice = (pricingMainPrice.value || '1.50').replace('$', '').trim();
+    const tiers = getTiers();
+    const pf = [300, 260, 260, 260][tiers.length];
+    const tiersTop = H - 40 - tiers.length * 46;
+    const FONT = '"Plus Jakarta Sans", "Segoe UI", Arial, sans-serif';
+
+    // Fondo y borde
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = NAVY;
+    ctx.lineWidth = 14;
+    ctx.strokeRect(7, 7, W - 14, H - 14);
+
+    // Nombre arriba a la izquierda
+    ctx.fillStyle = NAVY;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = `800 64px ${FONT}`;
+    ctx.fillText(name, 52, 130, pricingShowLogo.checked ? 700 : 900);
+
+    // Precio gigante centrado + UNIDAD
+    const priceText = `$${mainPrice}`;
+    ctx.font = `900 ${pf}px ${FONT}`;
+    const priceW = ctx.measureText(priceText).width;
+    const showUnit = pricingShowUnit.checked;
+    ctx.font = `500 40px ${FONT}`;
+    const unitW = showUnit ? ctx.measureText('UNIDAD').width + 16 : 0;
+    const startX = (W - priceW - unitW) / 2;
+    const priceBaseline = tiers.length ? 405 : 470;
+    ctx.fillStyle = '#000000';
+    ctx.font = `900 ${pf}px ${FONT}`;
+    ctx.fillText(priceText, startX, priceBaseline);
+    if (showUnit) {
+      ctx.fillStyle = '#4b5675';
+      ctx.font = `500 40px ${FONT}`;
+      ctx.fillText('UNIDAD', startX + priceW + 16, priceBaseline - 12);
+    }
+
+    // Banner de ofertas en columnas
+    if (tiers.length) {
+      const bx = 26, by = 448, bw = W - 52, bh = 100, inner = 42;
+      ctx.fillStyle = WINE;
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.fillStyle = NAVY;
+      ctx.fillRect(bx + inner, by, bw - inner * 2, bh);
+      const cw = (bw - inner * 2) / tiers.length;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      tiers.forEach((t, i) => {
+        const cx = bx + inner + cw * i + cw / 2;
+        if (i > 0) {
+          ctx.fillStyle = WINE;
+          ctx.fillRect(bx + inner + cw * i - 2, by, 4, bh);
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `500 ${tiers.length > 2 ? 34 : 40}px ${FONT}`;
+        ctx.fillText(t.label, cx, by + 38, cw - 24);
+        ctx.font = `800 ${tiers.length > 2 ? 46 : 54}px ${FONT}`;
+        ctx.fillText(t.priceText, cx, by + 86, cw - 24);
+      });
+    }
+
+    function finish() {
+      const a = document.createElement('a');
+      a.download = `precio_${name.toLowerCase().replace(/\s+/g, '_')}.png`;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+      showToast('Imagen de etiqueta descargada');
+    }
+
+    // Logo circular arriba a la derecha
+    if (pricingShowLogo.checked) {
+      const cx = W - 125, cy = 118, r = 82;
+      const logoImg = new Image();
+      logoImg.onload = () => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(logoImg, cx - r, cy - r, r * 2, r * 2);
+        ctx.restore();
+        finish();
+      };
+      logoImg.onerror = finish;
+      logoImg.src = 'icons/logo.png';
+    } else {
+      finish();
+    }
+  });
+
+  // ==========================================================
   // GESTIÓN DE CATÁLOGO / HISTORIAL (LocalStorage)
   // ==========================================================
   function loadCatalog() {
@@ -460,6 +838,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderCatalog(filterText = '') {
     historyCount.textContent = catalog.length;
+
+    // Actualizar selector en pestaña de precios si existe
+    const pricingCatalogSelect = document.getElementById('pricingCatalogSelect');
+    if (pricingCatalogSelect) {
+      const currentSelected = pricingCatalogSelect.value;
+      pricingCatalogSelect.innerHTML = '<option value="">-- Seleccionar un producto guardado o escribir nuevo --</option>' + 
+        catalog.map(item => `
+          <option value="${escapeHtml(item.code)}" ${item.code === currentSelected ? 'selected' : ''}>
+            ${escapeHtml(item.name)} (${item.price ? '$' + item.price.replace('$', '') : 'Sin precio'})
+          </option>
+        `).join('');
+    }
+
     const term = filterText.toLowerCase();
     const filtered = catalog.filter(item => 
       item.name.toLowerCase().includes(term) || item.code.toLowerCase().includes(term)
@@ -487,10 +878,13 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
         <div class="history-actions">
-          <button class="history-action-btn btn-load" data-code="${item.code}" title="Cargar y editar">
-            ✏️
+          <button class="history-action-btn btn-load" data-code="${item.code}" title="Cargar en Código de Barras">
+            🏷️
           </button>
-          <button class="history-action-btn btn-copy" data-code="${item.code}" title="Copiar número para tu sistema">
+          <button class="history-action-btn btn-load-pricing" data-code="${item.code}" title="Cargar en Etiqueta de Precios">
+            💰
+          </button>
+          <button class="history-action-btn btn-copy" data-code="${item.code}" title="Copiar SKU para tu sistema">
             📋
           </button>
           <button class="history-action-btn btn-delete" data-code="${item.code}" title="Eliminar">
@@ -513,7 +907,17 @@ document.addEventListener('DOMContentLoaded', () => {
           if (item.preset) labelPresetSelect.value = item.preset;
           updateLabelPreview();
           switchTab('creator');
-          showToast(`Cargado: ${item.name}`);
+          showToast(`Cargado en Código de Barras: ${item.name}`);
+        }
+      });
+    });
+
+    historyListContainer.querySelectorAll('.btn-load-pricing').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = catalog.find(x => x.code === btn.dataset.code);
+        if (item) {
+          loadProductIntoPricing(item);
+          switchTab('pricing');
         }
       });
     });
@@ -718,13 +1122,28 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#039;');
   }
 
-  // Registrar Service Worker para PWA
+  // Manejo de Service Worker para PWA
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(err => {
-        console.log('SW registration failed:', err);
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocalhost) {
+      // En desarrollo local (Live Server), desregistrar SWs viejos y purgar caché para que siempre refresque en vivo
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (const reg of registrations) {
+          reg.unregister();
+        }
       });
-    });
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          for (const name of names) caches.delete(name);
+        });
+      }
+    } else {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => {
+          console.log('SW registration failed:', err);
+        });
+      });
+    }
   }
 });
 

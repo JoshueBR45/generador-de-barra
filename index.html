@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -20,7 +20,7 @@
   <!-- Librería JsBarcode para renderizado nítido SVG/Canvas -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.4">
 </head>
 <body>
   <!-- Contenedor de la Aplicación -->
@@ -50,21 +50,30 @@
     <!-- Pestañas de Navegación -->
     <nav class="tab-nav">
       <button class="tab-btn active" data-tab="creator">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="16"></line>
-          <line x1="8" y1="12" x2="16" y2="12"></line>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+          <line x1="7" y1="8" x2="7" y2="16"></line>
+          <line x1="10" y1="8" x2="10" y2="16"></line>
+          <line x1="13" y1="8" x2="13" y2="16"></line>
+          <line x1="17" y1="8" x2="17" y2="16"></line>
         </svg>
-        Crear Etiqueta
+        <span>Código Barras</span>
+      </button>
+      <button class="tab-btn" data-tab="pricing">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+          <line x1="7" y1="7" x2="7.01" y2="7"></line>
+        </svg>
+        <span>Etiqueta Precios</span>
       </button>
       <button class="tab-btn" data-tab="history">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
           <polyline points="14 2 14 8 20 8"></polyline>
           <line x1="16" y1="13" x2="8" y2="13"></line>
           <line x1="16" y1="17" x2="8" y2="17"></line>
         </svg>
-        Productos (<span id="historyCount">0</span>)
+        <span>Catálogo (<span id="historyCount">0</span>)</span>
       </button>
     </nav>
 
@@ -152,7 +161,11 @@
           <div class="checkbox-row">
             <label class="custom-checkbox">
               <input type="checkbox" id="showBrand" checked>
-              <span>Mostrar marca <strong>JR IMPORTADORA</strong> en etiqueta</span>
+              <span>Mostrar marca <strong>JR IMPORTADORA</strong></span>
+            </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="showBrandLogo" checked>
+              <span>Incluir logo JR en blanco y negro</span>
             </label>
             <label class="custom-checkbox">
               <input type="checkbox" id="showPrice" checked>
@@ -174,7 +187,10 @@
 
           <div class="preview-stage">
             <div class="label-ticket-preview" id="labelPreviewCard">
-              <div class="lbl-brand" id="prevBrand">JR IMPORTADORA</div>
+              <div class="lbl-brand" id="prevBrand">
+                <img src="icons/logo.png" alt="JR Logo" class="lbl-brand-logo-img" id="prevBrandLogo">
+                <span>JR IMPORTADORA</span>
+              </div>
               <div class="lbl-header">
                 <div class="lbl-title" id="prevTitle">Labial Matte Larga Duración</div>
                 <div class="lbl-detail" id="prevDetail">Tono 04 Rose</div>
@@ -223,7 +239,171 @@
 
       </section>
 
-      <!-- TAB 2: Histórico de Códigos y Productos para el Sistema -->
+      <!-- TAB 2: Generador de Etiquetas de Precios y Ofertas (Importador) -->
+      <section id="tab-pricing" class="tab-pane">
+        
+        <!-- Formulario Simplificado y Limpio -->
+        <div class="card glass-card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="card-title">Etiqueta de Precio & Oferta</h2>
+              <p class="card-subtitle">Nombre arriba, logo en círculo y precios gigantes</p>
+            </div>
+          </div>
+
+          <!-- 1. Nombre del Producto -->
+          <div class="input-group">
+            <label for="pricingProdName">Nombre del producto *</label>
+            <div class="input-with-icon">
+              <input type="text" id="pricingProdName" placeholder="Ej: Camisa Sport / Labial Matte" autocomplete="off" value="Camisa Sport">
+              <span class="field-icon">🏷️</span>
+            </div>
+          </div>
+
+          <!-- 2. Precio normal (1 unidad) -->
+          <div class="input-group highlight-price-box">
+            <label for="pricingMainPrice">Precio 1 Unidad *</label>
+            <div class="clean-price-input">
+              <span class="curr">$</span>
+              <input type="text" id="pricingMainPrice" placeholder="1.50" value="1.50">
+            </div>
+          </div>
+
+          <!-- 3. Ofertas por cantidad: hasta 3 líneas, cada una opcional -->
+          <div class="offer-card" id="offerCard">
+            <div class="offer-card-head">
+              <div>
+                <strong>Ofertas por cantidad</strong>
+                <small>Marca las líneas que quieras y edita el texto, la cantidad y el precio. Si no marcas ninguna, solo sale el precio</small>
+              </div>
+            </div>
+
+            <div class="tier-list">
+              <div class="tier-row" data-tier="0">
+                <label class="switch"><input type="checkbox" class="tier-on" checked><span class="slider"></span></label>
+                <input type="text" class="tier-prefix" value="Más de" placeholder="Texto">
+                <input type="text" class="tier-qty" value="3" placeholder="Cant.">
+                <span class="tier-label">$</span>
+                <input type="text" class="tier-price" value="1.25" placeholder="1.25"> <input type="text" class="tier-conn" value="c/u" placeholder="c/u">
+              </div>
+              <div class="tier-row" data-tier="1">
+                <label class="switch"><input type="checkbox" class="tier-on"><span class="slider"></span></label>
+                <input type="text" class="tier-prefix" value="Más de" placeholder="Texto">
+                <input type="text" class="tier-qty" value="6" placeholder="Cant.">
+                <span class="tier-label">$</span>
+                <input type="text" class="tier-price" value="1.10" placeholder="1.10"> <input type="text" class="tier-conn" value="c/u" placeholder="c/u">
+              </div>
+              <div class="tier-row" data-tier="2">
+                <label class="switch"><input type="checkbox" class="tier-on"><span class="slider"></span></label>
+                <input type="text" class="tier-prefix" value="Más de" placeholder="Texto">
+                <input type="text" class="tier-qty" value="12" placeholder="Cant.">
+                <span class="tier-label">$</span>
+                <input type="text" class="tier-price" value="1.00" placeholder="1.00"> <input type="text" class="tier-conn" value="c/u" placeholder="c/u">
+              </div>
+            </div>
+          </div>
+
+          <!-- Ajustes Rápidos -->
+          <div class="grid-2-cols mt-2">
+            <div class="input-group">
+              <label for="pricingLabelPreset">Medida de Etiqueta</label>
+              <select id="pricingLabelPreset">
+                <option value="50x30" selected>50 × 30 mm (⭐ Ideal Góndola)</option>
+                <option value="40x30">40 × 30 mm (Ropa y Cosméticos)</option>
+                <option value="50x25">50 × 25 mm (Compacta)</option>
+                <option value="60x40">60 × 40 mm (Grande)</option>
+                <option value="58mm">Rollo 58 mm continuo</option>
+                <option value="80mm">Rollo 80 mm continuo</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label for="pricingCopies">Copias a imprimir</label>
+              <div class="qty-stepper">
+                <button type="button" id="btnPricingQtyMinus">-</button>
+                <input type="number" id="pricingCopies" value="1" min="1" max="500">
+                <button type="button" id="btnPricingQtyPlus">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="checkbox-row mt-1">
+            <label class="custom-checkbox">
+              <input type="checkbox" id="pricingShowLogo" checked>
+              <span>Incluir círculo con logo JR en la esquina derecha</span>
+            </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="pricingShowUnit" checked>
+              <span>Mostrar la palabra "UNIDAD" junto al precio</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Vista Previa de la Etiqueta (Fiel al boceto del usuario) -->
+        <div class="preview-section">
+          <div class="preview-header">
+            <span class="preview-tag">VISTA PREVIA EN VIVO</span>
+            <span class="preview-dims" id="pricingPreviewDims">50 × 30 mm</span>
+          </div>
+
+          <div class="preview-stage">
+            <div class="simple-price-ticket size-50x30" id="pricingPreviewCard">
+              
+              <!-- Fila Superior: Nombre a la izquierda y logo circular a la derecha -->
+              <div class="spt-top-row">
+                <div class="spt-prod-name" id="sptProdName">Camisa Sport</div>
+                <div class="spt-logo-circle" id="sptLogoCircle">
+                  <img src="icons/logo.png" alt="Logo JR" class="spt-logo-img" id="sptLogoImg">
+                </div>
+              </div>
+
+              <!-- Precio principal gigante + UNIDAD -->
+              <div class="spt-main-price" id="sptMainPrice">
+                <span class="spt-curr">$</span><span class="spt-num" id="sptMainNum">1.50</span>
+                <span class="spt-unit" id="sptUnit">UNIDAD</span>
+              </div>
+
+              <!-- Líneas de oferta (se generan según las que actives) -->
+              <div class="spt-tiers" id="sptTiers"></div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="actions-dock">
+          <button id="btnPricingPrint" class="btn btn-primary btn-block">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9"></polyline>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+              <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            <span>Imprimir (<span id="pricingCopiesLabel">1</span> copias)</span>
+          </button>
+          
+          <div class="grid-2-cols mt-2">
+            <button id="btnPricingSave" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Guardar en catálogo
+            </button>
+            <button id="btnPricingDownloadImg" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Descargar Imagen
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB 3: Histórico de Códigos y Productos para el Sistema -->
       <section id="tab-history" class="tab-pane">
         <div class="card glass-card">
           <div class="card-title-row">
@@ -294,6 +474,6 @@
   <!-- Contenedor EXCLUSIVO para la impresión física (Oculto en pantalla normal) -->
   <div id="printArea" class="print-only"></div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2.4"></script>
 </body>
 </html>
