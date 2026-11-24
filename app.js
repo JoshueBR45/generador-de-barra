@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BarcodePrint - Aplicación Móvil para Generación e Impresión Térmica
  * Compatible con impresoras térmicas de etiquetas y recibos (Bluetooth, USB, Wi-Fi o Android Print)
  */
@@ -687,7 +687,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Descargar imagen PNG nítida (Fiel al boceto del usuario)
-  btnPricingDownloadImg.addEventListener('click', () => {
+  // Dibuja la etiqueta en un canvas y devuelve una promesa con el canvas listo
+  function renderPricingCanvas(name, mainPrice, tiers, showLogo, showUnit) {
+   return new Promise(resolve => {
     const NAVY = '#1a2140';
     const WINE = '#7b1c4b';
     const canvas = document.createElement('canvas');
@@ -696,9 +698,6 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.width = W;
     canvas.height = H;
 
-    const name = pricingProdName.value.trim() || 'Nombre del producto';
-    const mainPrice = (pricingMainPrice.value || '1.50').replace('$', '').trim();
-    const tiers = getTiers();
     const pf = [300, 260, 260, 260][tiers.length];
     const tiersTop = H - 40 - tiers.length * 46;
     const FONT = '"Plus Jakarta Sans", "Segoe UI", Arial, sans-serif';
@@ -715,13 +714,12 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.font = `800 64px ${FONT}`;
-    ctx.fillText(name, 52, 130, pricingShowLogo.checked ? 700 : 900);
+    ctx.fillText(name, 52, 130, showLogo ? 700 : 900);
 
     // Precio gigante centrado + UNIDAD
     const priceText = `$${mainPrice}`;
     ctx.font = `900 ${pf}px ${FONT}`;
     const priceW = ctx.measureText(priceText).width;
-    const showUnit = pricingShowUnit.checked;
     ctx.font = `500 40px ${FONT}`;
     const unitW = showUnit ? ctx.measureText('UNIDAD').width + 16 : 0;
     const startX = (W - priceW - unitW) / 2;
@@ -759,16 +757,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    function finish() {
-      const a = document.createElement('a');
-      a.download = `precio_${name.toLowerCase().replace(/\s+/g, '_')}.png`;
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-      showToast('Imagen de etiqueta descargada');
-    }
+    function finish() { resolve(canvas); }
 
     // Logo circular arriba a la derecha
-    if (pricingShowLogo.checked) {
+    if (showLogo) {
       const cx = W - 125, cy = 118, r = 82;
       const logoImg = new Image();
       logoImg.onload = () => {
@@ -785,6 +777,18 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       finish();
     }
+   });
+  }
+
+  btnPricingDownloadImg.addEventListener('click', async () => {
+    const name = pricingProdName.value.trim() || 'Nombre del producto';
+    const mainPrice = (pricingMainPrice.value || '1.50').replace('$', '').trim();
+    const canvas = await renderPricingCanvas(name, mainPrice, getTiers(), pricingShowLogo.checked, pricingShowUnit.checked);
+    const a = document.createElement('a');
+    a.download = `precio_${name.toLowerCase().replace(/\s+/g, '_')}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    showToast('Imagen de etiqueta descargada');
   });
 
   // ==========================================================
@@ -1121,6 +1125,342 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
+
+  // ==========================================================
+  // IMPORTAR EXCEL: lista de productos guardada en localStorage
+  // ==========================================================
+  const EXCEL_KEY = 'excel_products_v1';
+  const excelFile = document.getElementById('excelFile');
+  const excelMapping = document.getElementById('excelMapping');
+  const excelSummary = document.getElementById('excelSummary');
+  const excelSearch = document.getElementById('excelSearch');
+  const excelResults = document.getElementById('excelResults');
+  const excelOnlyWarn = document.getElementById('excelOnlyWarn');
+  const excelNames = document.getElementById('excelNames');
+  const excelCount = document.getElementById('excelCount');
+  const mapIds = ['mapName', 'mapText', 'mapUnit', 'mapT0', 'mapT1', 'mapT2'];
+  let excelProducts = [];
+  let excelRows = [];
+  let excelHeaders = [];
+
+  try { excelProducts = JSON.parse(localStorage.getItem(EXCEL_KEY) || '[]'); } catch (e) { excelProducts = []; }
+
+  const norm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+  function parseMoney(v) {
+    if (v === null || v === undefined || v === '') return '';
+    if (typeof v === 'number') return isFinite(v) ? v.toFixed(2) : '';
+    let s = String(v).replace(/[^\d.,]/g, '');
+    if (!s) return '';
+    if (s.includes(',') && s.includes('.')) s = s.replace(/,/g, '');
+    else s = s.replace(',', '.');
+    const n = parseFloat(s);
+    return isFinite(n) ? n.toFixed(2) : '';
+  }
+
+  // Busca frases como "a partir de 3", "desde 6 unidades a $1.10", "3 o más"
+  const PROMO_RE = /(a\s*partir\s*de|desde|m[aá]s\s*de|mayor(?:es)?\s*(?:a|de)|por\s*)\s*(\d+)\s*(?:unid(?:ades)?\.?|und?\.?|pzas?\.?|piezas?)?(?:\s*(?:en|a|=|:|-|por)?\s*\$\s*(\d+(?:[.,]\d+)?))?|(\d+)\s*(?:o|y)\s*m[aá]s(?:\s*(?:en|a|=|:|-)?\s*\$\s*(\d+(?:[.,]\d+)?))?|(?:caja|paquete|pack|docena)\s*(?:de)?\s*(\d+)\s*(?:unid(?:ades)?\.?|und?\.?|pzas?\.?|piezas?)?\s*(?:en|a|=|:|-|por)?\s*\$\s*(\d+(?:[.,]\d+)?)/gi;
+
+  function findPromos(text) {
+    const out = [];
+    const t = String(text || '');
+    let m;
+    PROMO_RE.lastIndex = 0;
+    while ((m = PROMO_RE.exec(t)) !== null) {
+      if (m[6]) {
+        const word = (m[0].match(/^[a-z]+/i) || ['Caja'])[0];
+        out.push({ qty: parseInt(m[6], 10), price: parseMoney(m[7]), prefix: word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() + ' de', conn: '', box: true, text: m[0] });
+        continue;
+      }
+      const isOrMore = !!m[4];
+      out.push({
+        qty: parseInt(isOrMore ? m[4] : m[2], 10),
+        price: parseMoney(isOrMore ? m[5] : m[3]),
+        prefix: isOrMore ? 'Desde' : (/m[aá]s/i.test(m[1]) ? 'Más de' : (/desde/i.test(m[1]) ? 'Desde' : 'A partir de')),
+        conn: 'c/u',
+        text: m[0]
+      });
+    }
+    return out;
+  }
+
+  function cleanName(text) {
+    let s = String(text || '');
+    findPromos(s).forEach(p => { s = s.replace(p.text, ' '); });
+    return s.replace(/\s+/g, ' ').replace(/[\s\-\/|,;:()]+$/g, '').replace(/^[\s\-\/|,;:]+/g, '').trim();
+  }
+
+  function detectHeaderRow(rows) {
+    for (let i = 0; i < Math.min(rows.length, 15); i++) {
+      const filled = (rows[i] || []).filter(c => typeof c === 'string' && c.trim()).length;
+      if (filled >= 2) return i;
+    }
+    return 0;
+  }
+
+  function fillSelect(id, headers, selected) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="-1">(ninguna)</option>' +
+      headers.map((h, i) => `<option value="${i}">${escapeHtml(h || ('Columna ' + (i + 1)))}</option>`).join('');
+    sel.value = String(selected);
+  }
+
+  function autoDetect(headers) {
+    const H = headers.map(norm);
+    const find = (re, skip = []) => H.findIndex((h, i) => h && re.test(h) && !skip.includes(i));
+    const name = find(/descrip|nombre|producto|articulo|item/);
+    const priceLike = H.map((h, i) => (/precio|pvp|p\.?v\.?p|valor|costo|venta|unit|mayor|oferta|promo|docena|caja|paquete|x\s?\d|\d/.test(h) ? i : -1)).filter(i => i >= 0 && i !== name);
+    // El precio de venta es la columna "Precio" (nunca "costo", "compra" ni "costo unitario")
+    const isCost = h => /costo|compra|proveedor|cost/.test(h);
+    let unit = H.findIndex((h, i) => i !== name && h && !isCost(h) && /^(precio|pvp|p\.?v\.?p|precio\s*(de\s*)?(venta|publico|unitario|normal|1))$/.test(h));
+    if (unit < 0) unit = H.findIndex((h, i) => i !== name && h && !isCost(h) && /precio|pvp|p\.?v\.?p/.test(h));
+    if (unit < 0) unit = priceLike.find(i => !isCost(H[i])) ?? -1;
+    const tiers = priceLike.filter(i => i !== unit && !isCost(H[i]) && /mayor|oferta|promo|docena|caja|paquete|\d|x\s?\d|desde|partir/.test(H[i]));
+    // Columna de ofertas: la que contiene frases tipo "a partir de 3 en $1,99"
+    let text = -1, best = 0;
+    headers.forEach((_, c) => {
+      const hits = excelRows.slice(0, 200).filter(r => findPromos(r[c]).length).length;
+      if (hits > best) { best = hits; text = c; }
+    });
+    let nm = name;
+    if (text >= 0 && nm === text) {
+      const other = H.findIndex((h, i) => h && i !== text && /nombre|producto|articulo|item|detalle/.test(h));
+      if (other >= 0) nm = other;
+    }
+    if (text < 0) text = nm;
+    return { name: nm, text, unit, t: [-1, -1, -1].map((v, i) => (text >= 0 && text !== nm ? v : (tiers[i] ?? -1))) };
+  }
+
+  function showMapping(auto) {
+    excelMapping.style.display = '';
+    fillSelect('mapName', excelHeaders, auto.name);
+    fillSelect('mapText', excelHeaders, auto.text);
+    fillSelect('mapUnit', excelHeaders, auto.unit);
+    fillSelect('mapT0', excelHeaders, auto.t[0]);
+    fillSelect('mapT1', excelHeaders, auto.t[1]);
+    fillSelect('mapT2', excelHeaders, auto.t[2]);
+  }
+
+  excelFile.addEventListener('change', async () => {
+    const file = excelFile.files[0];
+    if (!file) return;
+    if (typeof XLSX === 'undefined') { showToast('No cargó la librería de Excel. Revisa tu internet y recarga.'); return; }
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+      const hi = detectHeaderRow(rows);
+      excelHeaders = (rows[hi] || []).map(h => String(h).trim());
+      excelRows = rows.slice(hi + 1).filter(r => r.some(c => String(c).trim() !== ''));
+      showMapping(autoDetect(excelHeaders));
+      processExcel();
+    } catch (err) {
+      console.error(err);
+      showToast('No se pudo leer el archivo Excel');
+    }
+  });
+
+  function processExcel() {
+    const g = id => parseInt(document.getElementById(id).value, 10);
+    const cName = g('mapName'), cText = g('mapText'), cUnit = g('mapUnit');
+    const cT = [g('mapT0'), g('mapT1'), g('mapT2')];
+    const defQ = document.getElementById('mapQtys').value.split(/[,\s]+/).map(x => parseInt(x, 10)).filter(Boolean);
+    const defaults = [defQ[0] || 3, defQ[1] || 6, defQ[2] || 12];
+    if (cName < 0) { showToast('Elige la columna de Descripción / Nombre'); return; }
+
+    const seen = {};
+    const products = [];
+    excelRows.forEach((r, ri) => {
+      const rawName = String(r[cName] ?? '').trim();
+      if (!rawName) return;
+      const text = cText >= 0 ? String(r[cText] ?? '') : rawName;
+      const promos = findPromos(text).concat(cText !== cName ? findPromos(rawName) : []);
+      const name = cleanName(rawName);
+      const unit = cUnit >= 0 ? parseMoney(r[cUnit]) : '';
+      const warns = [];
+      const tiers = [];
+
+      cT.forEach((col, i) => {
+        const colPrice = col >= 0 ? parseMoney(r[col]) : '';
+        const promo = promos[i];
+        const price = colPrice || (promo && promo.price) || '';
+        if (!price) {
+          if (promo && col >= 0) warns.push(`Dice "${promo.text.trim()}" pero no hay precio en "${excelHeaders[col]}"`);
+          return;
+        }
+        let qty = promo ? promo.qty : defaults[i];
+        if (!promo) warns.push(`Tiene precio oferta ${i + 1} ($${price}) pero la descripción no dice desde cuántas unidades (se usó ${qty})`);
+        if (promo && promo.price && colPrice && promo.price !== colPrice) {
+          warns.push(`Precio no coincide: descripción dice $${promo.price}, columna dice $${colPrice} (se usó la columna)`);
+        }
+        tiers.push({ on: true, prefix: promo ? promo.prefix : 'A partir de', qty: String(qty), conn: promo ? promo.conn : 'c/u', price, box: !!(promo && promo.box) });
+      });
+      if (promos.length > tiers.length && !promos.slice(tiers.length).every(p => p.price)) {
+        // ya avisado arriba por oferta sin precio
+      }
+
+      if (!unit) warns.push('Falta el precio de 1 unidad');
+      tiers.filter(t => !t.box).forEach(t => {
+        if (unit && parseFloat(t.price) >= parseFloat(unit)) warns.push(`Oferta "${t.prefix} ${t.qty}" ($${t.price}) no es menor que el precio unidad ($${unit})`);
+      });
+      const plain = tiers.filter(t => !t.box);
+      for (let i = 1; i < plain.length; i++) {
+        const tiers = plain;
+        if (parseInt(tiers[i].qty, 10) <= parseInt(tiers[i - 1].qty, 10)) warns.push('Las cantidades de las ofertas no van de menor a mayor');
+        if (parseFloat(tiers[i].price) > parseFloat(tiers[i - 1].price)) warns.push('Una oferta de más unidades es más cara que una de menos');
+      }
+      const key = norm(name);
+      if (seen[key] !== undefined) warns.push(`Nombre repetido (fila ${seen[key] + 2})`); else seen[key] = ri;
+
+      products.push({ name, price: unit, tiers, warnings: Array.from(new Set(warns)), row: ri + 2 });
+    });
+
+    excelProducts = products;
+    localStorage.setItem(EXCEL_KEY, JSON.stringify(excelProducts));
+    const bad = products.filter(p => p.warnings.length).length;
+    excelSummary.style.display = '';
+    excelSummary.innerHTML = `✅ <strong>${products.length}</strong> productos guardados. ` +
+      (bad ? `⚠️ <strong>${bad}</strong> tienen alertas (actívalas abajo con "Mostrar solo productos con alertas").` : 'Sin alertas.');
+    refreshExcelUi();
+  }
+
+  document.getElementById('btnExcelProcess').addEventListener('click', processExcel);
+
+  document.getElementById('btnExcelClear').addEventListener('click', () => {
+    if (!confirm('¿Borrar toda la lista importada?')) return;
+    excelProducts = [];
+    localStorage.removeItem(EXCEL_KEY);
+    excelSummary.style.display = 'none';
+    refreshExcelUi();
+  });
+
+  function tiersSummary(p) {
+    return p.tiers.map(t => `${t.prefix} ${t.qty}: $${t.price}${t.box ? " (total)" : ""}`).join(' · ');
+  }
+
+  function renderExcelResults() {
+    const q = norm(excelSearch.value);
+    const words = q.split(/\s+/).filter(Boolean);
+    const onlyWarn = excelOnlyWarn.checked;
+    const list = excelProducts.filter(p => (!onlyWarn || p.warnings.length) && words.every(w => norm(p.name).includes(w)));
+    if (!excelProducts.length) {
+      excelResults.innerHTML = '<p class="help-text">Aún no has importado ningún Excel.</p>';
+      return;
+    }
+    if (!list.length) { excelResults.innerHTML = '<p class="help-text">Sin resultados.</p>'; return; }
+    excelResults.innerHTML = list.slice(0, 60).map(p => {
+      const idx = excelProducts.indexOf(p);
+      return `<div class="history-item" style="display:block;padding:10px 0;border-bottom:1px solid var(--input-border);">
+        <strong>${escapeHtml(p.name)}</strong>
+        <div class="help-text">1 unidad: ${p.price ? '$' + escapeHtml(p.price) : '—'}${p.tiers.length ? ' · ' + escapeHtml(tiersSummary(p)) : ''}</div>
+        ${p.warnings.map(w => `<div style="color:var(--warning);font-size:12px;">⚠️ ${escapeHtml(w)} <em>(fila ${p.row})</em></div>`).join('')}
+        <button type="button" class="btn btn-small btn-primary mt-1" data-excel-use="${idx}">Crear etiqueta</button>
+      </div>`;
+    }).join('') + (list.length > 60 ? `<p class="help-text">Mostrando 60 de ${list.length}. Escribe más letras para filtrar.</p>` : '');
+  }
+
+  function refreshExcelUi() {
+    excelCount.textContent = excelProducts.length;
+    excelNames.innerHTML = excelProducts.slice(0, 5000).map(p => `<option value="${escapeHtml(p.name)}"></option>`).join('');
+    renderExcelResults();
+  }
+
+  function useExcelProduct(p) {
+    loadProductIntoPricing({ name: p.name, price: p.price || '', tiers: p.tiers });
+    switchTab('pricing');
+    if (p.warnings.length) showToast('⚠️ Revisa: ' + p.warnings[0]);
+  }
+
+  excelResults.addEventListener('click', e => {
+    const btn = e.target.closest('[data-excel-use]');
+    if (btn) useExcelProduct(excelProducts[parseInt(btn.dataset.excelUse, 10)]);
+  });
+  excelSearch.addEventListener('input', renderExcelResults);
+  excelOnlyWarn.addEventListener('change', renderExcelResults);
+
+  // En la pestaña de precios: al elegir un nombre de la lista se cargan sus precios
+  pricingProdName.addEventListener('input', () => {
+    const v = norm(pricingProdName.value);
+    if (!v) return;
+    const p = excelProducts.find(x => norm(x.name) === v);
+    if (p) {
+      const typed = pricingProdName.value;
+      loadProductIntoPricing({ name: p.name, price: p.price || '', tiers: p.tiers });
+      if (p.warnings.length) showToast('⚠️ Revisa: ' + p.warnings[0]);
+      if (pricingProdName.value !== typed) pricingProdName.value = typed;
+    }
+  });
+
+  refreshExcelUi();
+  // ---------- Generación masiva de imágenes (ZIP) ----------
+  const btnBulkImages = document.getElementById('btnBulkImages');
+  const bulkStatus = document.getElementById('bulkStatus');
+  const bulkScope = document.getElementById('bulkScope');
+
+  function fileSafe(s) {
+    return norm(s).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60) || 'producto';
+  }
+
+  btnBulkImages.addEventListener('click', async () => {
+    if (typeof JSZip === 'undefined') { showToast('No cargó la librería ZIP. Revisa tu internet y recarga.'); return; }
+    const words = norm(excelSearch.value).split(/\s+/).filter(Boolean);
+    let list = excelProducts;
+    if (bulkScope.value === 'filtered') {
+      list = excelProducts.filter(p => (!excelOnlyWarn.checked || p.warnings.length) && words.every(w => norm(p.name).includes(w)));
+    }
+    list = list.filter(p => p.price || p.tiers.length);
+    if (!list.length) { showToast('No hay productos para generar'); return; }
+    if (list.length > 300 && !confirm(`Vas a generar ${list.length} imágenes. Puede tardar. ¿Continuar?`)) return;
+
+    btnBulkImages.disabled = true;
+    const zip = new JSZip();
+    const used = {};
+    let showLogo = pricingShowLogo.checked, logoBlocked = false;
+    const showUnit = pricingShowUnit.checked;
+    try {
+      for (let i = 0; i < list.length; i++) {
+        const p = list[i];
+        const tiers = p.tiers.slice(0, 3).map(t => ({
+          label: [t.prefix, t.qty].filter(Boolean).join(' '),
+          priceText: '$' + t.price + (t.conn ? ' ' + t.conn : '')
+        }));
+        const toPng = async (withLogo) => {
+          const canvas = await renderPricingCanvas(p.name, p.price || '0.00', tiers, withLogo, showUnit);
+          return await new Promise((res, rej) => {
+            try { canvas.toBlob(b => (b ? res(b) : rej(new Error('canvas vacío'))), 'image/png'); } catch (e) { rej(e); }
+          });
+        };
+        let blob;
+        try { blob = await toPng(showLogo); }
+        catch (e) {
+          // Si el navegador bloquea el logo (abrir como archivo local), se genera sin logo
+          if (!showLogo) throw e;
+          logoBlocked = true;
+          showLogo = false;
+          blob = await toPng(false);
+        }
+        let base = fileSafe(p.name);
+        used[base] = (used[base] || 0) + 1;
+        if (used[base] > 1) base += '_' + used[base];
+        zip.file(base + '.png', blob);
+        bulkStatus.textContent = `Generando ${i + 1} de ${list.length}...`;
+        if (i % 5 === 4) await new Promise(r => setTimeout(r, 0));
+      }
+      bulkStatus.textContent = 'Comprimiendo ZIP...';
+      const out = await zip.generateAsync({ type: 'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(out);
+      a.download = 'etiquetas_precios.zip';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+      bulkStatus.textContent = (logoBlocked ? '⚠️ El navegador bloqueó el logo (abre la app desde http://localhost o Vercel). ' : '') + `✅ ${list.length} imágenes en etiquetas_precios.zip`;
+    } catch (err) {
+      console.error(err);
+      bulkStatus.textContent = 'Error al generar las imágenes: ' + (err && err.message ? err.message : err);
+    }
+    btnBulkImages.disabled = false;
+  });
 
   // Manejo de Service Worker para PWA
   if ('serviceWorker' in navigator) {

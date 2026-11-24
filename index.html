@@ -20,7 +20,10 @@
   <!-- Librería JsBarcode para renderizado nítido SVG/Canvas -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=2.5">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+  <link rel="stylesheet" href="style.css?v=2.7">
 </head>
 <body>
   <!-- Contenedor de la Aplicación -->
@@ -74,6 +77,15 @@
           <line x1="16" y1="17" x2="8" y2="17"></line>
         </svg>
         <span>Catálogo (<span id="historyCount">0</span>)</span>
+      </button>
+      <button class="tab-btn" data-tab="excel">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="8" y1="13" x2="16" y2="21"></line>
+          <line x1="16" y1="13" x2="8" y2="21"></line>
+        </svg>
+        <span>Importar Excel (<span id="excelCount">0</span>)</span>
       </button>
     </nav>
 
@@ -255,8 +267,8 @@
           <div class="input-group">
             <label for="pricingProdName">Nombre del producto *</label>
             <div class="input-with-icon">
-              <input type="text" id="pricingProdName" placeholder="Ej: Camisa Sport / Labial Matte" autocomplete="off" value="Camisa Sport">
-              <span class="field-icon">🏷️</span>
+              <input type="text" id="pricingProdName" list="excelNames" placeholder="Ej: Camisa Sport / Labial Matte" autocomplete="off" value="Camisa Sport">
+              <span class="field-icon">🏷️</span><datalist id="excelNames"></datalist>
             </div>
           </div>
 
@@ -431,6 +443,59 @@
         </div>
       </section>
 
+      <!-- TAB 4: Importar Excel -->
+      <section id="tab-excel" class="tab-pane">
+        <div class="card glass-card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="card-title">Importar lista de precios (Excel)</h2>
+              <p class="card-subtitle">Se guarda en este dispositivo. Luego solo buscas el nombre y se arma la etiqueta</p>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="excelFile">Archivo Excel (.xlsx, .xls, .csv)</label>
+            <input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
+          </div>
+          <div id="excelMapping" style="display:none;">
+            <p class="help-text">Revisa que las columnas estén bien detectadas. Si no, cámbialas y pulsa "Validar".</p>
+            <div class="grid-2-cols">
+              <div class="input-group"><label>Descripción / Nombre</label><select id="mapName"></select></div>
+              <div class="input-group"><label>Texto con "a partir de..."</label><select id="mapText"></select></div>
+            </div>
+            <div class="grid-2-cols">
+              <div class="input-group"><label>Precio 1 unidad</label><select id="mapUnit"></select></div>
+              <div class="input-group"><label>Precio oferta 1</label><select id="mapT0"></select></div>
+            </div>
+            <div class="grid-2-cols">
+              <div class="input-group"><label>Precio oferta 2</label><select id="mapT1"></select></div>
+              <div class="input-group"><label>Precio oferta 3</label><select id="mapT2"></select></div>
+            </div>
+            <div class="grid-2-cols">
+              <div class="input-group"><label>Cantidades por defecto (si la descripción no las dice)</label><input type="text" id="mapQtys" value="3, 6, 12"></div>
+              <div class="input-group"><label>&nbsp;</label><button type="button" id="btnExcelProcess" class="btn btn-primary">Validar y guardar</button></div>
+            </div>
+          </div>
+          <div id="excelSummary" class="tip-box" style="display:none;margin-top:12px;"></div>
+                    <div class="input-group" style="margin-top:12px;">
+            <label>Generar imágenes de precios en masa (usa las opciones de logo y UNIDAD de la pestaña Etiqueta Precios)</label>
+            <select id="bulkScope">
+              <option value="all">Todos los productos importados</option>
+              <option value="filtered">Solo los que salen en la búsqueda de abajo</option>
+            </select>
+            <button type="button" id="btnBulkImages" class="btn btn-primary mt-1">Descargar imágenes (ZIP)</button>
+            <small class="help-text" id="bulkStatus"></small>
+          </div>
+          <button type="button" id="btnExcelClear" class="btn btn-small btn-danger mt-1">Borrar lista importada</button>
+        </div>
+
+        <div class="card glass-card">
+          <div class="search-box">
+            <input type="text" id="excelSearch" placeholder="Buscar producto por nombre...">
+          </div>
+          <label class="custom-checkbox mt-1"><input type="checkbox" id="excelOnlyWarn"><span>Mostrar solo productos con alertas</span></label>
+          <div class="history-list" id="excelResults"></div>
+        </div>
+      </section>
     </main>
 
     <!-- Modal Bluetooth / Impresora Térmica Directa -->
@@ -474,6 +539,6 @@
   <!-- Contenedor EXCLUSIVO para la impresión física (Oculto en pantalla normal) -->
   <div id="printArea" class="print-only"></div>
 
-  <script src="app.js?v=2.5"></script>
+  <script src="app.js?v=2.7"></script>
 </body>
 </html>
